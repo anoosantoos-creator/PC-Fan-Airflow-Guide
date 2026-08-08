@@ -1,0 +1,5 @@
+case,design,depth_mm,vane_count,vane_bias_deg,vane_thickness_mm,cfd_geometry_blockage_percent,printable_cad_blockage_percent_estimate,mean_ux_x100_m_s,mean_ux_x130_m_s,mean_ux_x350_m_s,axial_retention_x350_percent_of_baseline,mean_speed_x350_m_s,mean_transverse_speed_x350_m_s,kinematic_pressure_demand_m2_s2,pressure_demand_pa_at_1p2kg_m3,average_reverse_flow_percent,decision
+baseline_no_guide,Baseline,0.0,0,0.0,0.00,0.0,0.00,0.45862,0.46178,0.44084,100.00,0.61953,0.07705,0.54192,0.65030,38.895,Reference case
+design_A_low_blockage,Design A,20.0,6,0.0,1.50,3.4,3.95,0.42465,0.42614,0.41379,93.86,0.68510,0.08023,0.29857,0.35828,40.036,Prototype candidate: low pressure demand and simple geometry
+design_B_angled_guide,Design B,25.0,8,14.0,2.00,6.2,7.02,0.41353,0.41598,0.40187,91.16,0.56459,0.11165,0.60116,0.72139,30.809,Deprioritized: highest blockage and lowest downstream axial speed
+design_C_balanced_revision,Design C,22.0,6,9.0,1.35,3.1,3.56,0.42722,0.42869,0.42354,96.08,0.74982,0.53548,0.83491,1.00189,28.156,Prototype candidate: lower reverse-flow fraction but higher pressure demand

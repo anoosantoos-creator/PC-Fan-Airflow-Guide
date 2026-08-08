@@ -1,0 +1,41 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 13-18870c24d21c
+Exec   : foamPostProcess -dict system/sampleDict -latestTime
+Date   : Jul 03 2026
+Time   : 20:41:35
+Host   : "ANOOSYPC"
+PID    : 786
+I/O    : uncollated
+Case   : <project-root>/openfoam_cases/design_A_low_blockage
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 200
+
+Reading surface description:
+    plane_x_100mm
+    plane_x_130mm
+    plane_x_350mm
+
+Time = 200s
+
+Reading fields:
+    volScalarFields: p
+    volVectorFields: UUsing dynamicCode for codedFixedValue annularFanVelocity at line 333517 in "<project-root>/openfoam_cases/design_A_low_blockage/200/U/fan_active_annulus"
+
+
+Executing functionObjects
+
+End
+

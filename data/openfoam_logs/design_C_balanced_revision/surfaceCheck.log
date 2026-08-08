@@ -1,0 +1,94 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 13-18870c24d21c
+Exec   : surfaceCheck constant/triSurface/design_C_obstruction.stl
+Date   : Jul 03 2026
+Time   : 20:47:34
+Host   : "ANOOSYPC"
+PID    : 994
+I/O    : uncollated
+Case   : <project-root>/openfoam_cases/design_C_balanced_revision
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Reading surface from "constant/triSurface/design_C_obstruction.stl" ...
+
+Statistics:
+Triangles    : 504
+Vertices     : 266
+Bounding Box : (0 -0.06 -0.06) (0.022 0.06 0.06)
+
+Region	Size
+------	----
+design_C_obstruction_m	504
+
+
+Surface has no illegal triangles.
+
+Triangle quality (equilateral=1, collapsed=0):
+    0 .. 0.05  : 0
+    0.05 .. 0.1  : 0.111111
+    0.1 .. 0.15  : 0.777778
+    0.15 .. 0.2  : 0
+    0.2 .. 0.25  : 0
+    0.25 .. 0.3  : 0.015873
+    0.3 .. 0.35  : 0.015873
+    0.35 .. 0.4  : 0
+    0.4 .. 0.45  : 0
+    0.45 .. 0.5  : 0.031746
+    0.5 .. 0.55  : 0
+    0.55 .. 0.6  : 0
+    0.6 .. 0.65  : 0
+    0.65 .. 0.7  : 0
+    0.7 .. 0.75  : 0
+    0.75 .. 0.8  : 0.047619
+    0.8 .. 0.85  : 0
+    0.85 .. 0.9  : 0
+    0.9 .. 0.95  : 0
+    0.95 .. 1  : 0
+
+    min 0.0740586 for triangle 438
+    max 0.750086 for triangle 446
+
+Edges:
+    min 0.00135 for edge 655 points (0.022 0.022 0.00280946)(0.022 0.022 0.00415946)
+    max 0.122 for edge 0 points (0.022 0.06 0.0525)(0 -0.06 0.0525)
+
+Checking for points less than 1e-6 of bounding box ((0.022 0.12 0.12) metre) apart.
+Found 0 nearby points.
+
+Surface is not closed since not all edges connected to two faces:
+    connected to one face : 0
+    connected to >2 faces : 4
+Conflicting face labels:16
+Dumping conflicting face labels to "problemFaces"
+Paste this into the input for surfaceSubset
+
+Number of unconnected parts : 8
+Splitting surface into parts ...
+
+Writing zoning to "zone_design_C_obstruction.vtk"...
+
+writing part 0 size 48 to "design_C_obstruction_0.obj"
+writing part 1 size 384 to "design_C_obstruction_1.obj"
+writing part 2 size 12 to "design_C_obstruction_2.obj"
+writing part 3 size 12 to "design_C_obstruction_3.obj"
+writing part 4 size 12 to "design_C_obstruction_4.obj"
+writing part 5 size 12 to "design_C_obstruction_5.obj"
+writing part 6 size 12 to "design_C_obstruction_6.obj"
+writing part 7 size 12 to "design_C_obstruction_7.obj"
+
+Number of zones (connected area with consistent normal) : 11
+More than one normal orientation.
+
+
+End
+

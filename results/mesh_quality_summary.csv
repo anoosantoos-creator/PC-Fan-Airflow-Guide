@@ -1,0 +1,5 @@
+case,cells,max_aspect_ratio,max_non_orthogonality_deg,average_non_orthogonality_deg,max_skewness,check_mesh_status
+baseline_no_guide,217500,1.0057472,0.0,0.0,9.6589403e-14,OK
+design_A_low_blockage,333490,3.7905878,45.096281,6.1157379,1.4069801,OK
+design_B_angled_guide,357784,3.9992887,48.607371,6.6688506,1.5657989,OK
+design_C_balanced_revision,343423,4.1593767,45.550516,6.3431723,1.7650351,OK
