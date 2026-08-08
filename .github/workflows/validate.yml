@@ -1,40 +1,22 @@
-name: apply repository update
+name: validate
 
 on:
   push:
-    branches:
-      - agent/include-complete-openfoam-cases
-
-permissions:
-  contents: write
+  pull_request:
 
 jobs:
-  apply-update:
-    if: github.actor != 'github-actions[bot]'
+  repository-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          fetch-depth: 0
-      - name: Apply prepared tree
-        shell: bash
-        run: |
-          if [[ ! -f .repository-update.tar.gz ]]; then
-            echo "No repository update archive is present."
-            exit 0
-          fi
-
-          tar -xzf .repository-update.tar.gz
-          rm .repository-update.tar.gz
-
-          git config user.name "anoosantoos-creator"
-          git config user.email "302301284+anoosantoos-creator@users.noreply.github.com"
-          git add -A
-
-          if git diff --cached --quiet; then
-            echo "The prepared tree has no changes."
-            exit 0
-          fi
-
-          git commit -m "Include complete OpenFOAM rerun"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: npm ci
+      - run: python -m pip install -r requirements.txt
+      - run: npm run check
