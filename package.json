@@ -1,13 +1,16 @@
 {
   "name": "pc-fan-airflow-guide",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Parametric CAD and OpenFOAM screening data for a 120 mm PC intake airflow guide.",
   "scripts": {
     "cad": "node scripts/generate_cad.cjs",
+    "cfd:prepare": "python scripts/prepare_openfoam_cases.py",
+    "cfd:run": "bash scripts/run_openfoam_cases.sh",
+    "cfd:collect": "python scripts/collect_openfoam_results.py",
     "analysis": "python scripts/analyze_openfoam_samples.py",
     "validate": "python scripts/validate_repository.py",
-    "check": "npm run cad && npm run analysis && npm run validate"
+    "check": "npm run cad && npm run cfd:prepare && npm run analysis && npm run validate"
   },
   "dependencies": {
     "replicad": "0.23.1",

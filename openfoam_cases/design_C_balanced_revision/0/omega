@@ -1,0 +1,41 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      omega;
+}
+
+dimensions      [0 0 -1 0 0 0 0];
+internalField   uniform 61.5;
+
+boundaryField
+{
+    fan_active_annulus
+    {
+        type            turbulentMixingLengthFrequencyInlet;
+        mixingLength    0.00455;
+        value           uniform 61.5;
+    }
+    inlet_blocked
+    {
+        type            omegaWallFunction;
+        value           uniform 61.5;
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 61.5;
+        value           uniform 61.5;
+    }
+    walls
+    {
+        type            omegaWallFunction;
+        value           uniform 61.5;
+    }
+    solidSurfaces
+    {
+        type            omegaWallFunction;
+        value           uniform 61.5;
+    }
+}

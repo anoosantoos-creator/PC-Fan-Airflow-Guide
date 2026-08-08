@@ -1,0 +1,32 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      createPatchDict;
+}
+
+// Split the active fan annulus from the blocked part of the inlet. Using
+// a native zone generator avoids run-time compilation of a coded field.
+patches
+{
+    fan_active_annulus
+    {
+        patchInfo
+        {
+            type patch;
+        }
+
+        constructFrom zone;
+
+        zone
+        {
+            type        annulus;
+            zoneType    face;
+            point1      (-0.0041 0 0);
+            point2      (-0.0039 0 0);
+            outerRadius 0.0525;
+            innerRadius 0.0200;
+        }
+    }
+}

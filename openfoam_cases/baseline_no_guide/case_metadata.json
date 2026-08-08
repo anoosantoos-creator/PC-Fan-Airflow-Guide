@@ -1,0 +1,6 @@
+{
+  "case": "baseline_no_guide",
+  "description": "Measured fan frame and inactive hub, without guide vanes.",
+  "label": "Baseline",
+  "source": "fan_reference.stl"
+}

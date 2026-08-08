@@ -2,3 +2,14 @@ node_modules/
 __pycache__/
 *.pyc
 .DS_Store
+
+# OpenFOAM run products. The complete tracked inputs remain visible.
+openfoam_cases/*/constant/polyMesh/
+openfoam_cases/*/[1-9]*/
+openfoam_cases/*/postProcessing/
+openfoam_cases/*/dynamicCode/
+openfoam_cases/*/log.*
+openfoam_cases/*/obstruction_*.obj
+openfoam_cases/*/constant/triSurface/zone_*.vtk
+openfoam_output/
+cfd_runs/

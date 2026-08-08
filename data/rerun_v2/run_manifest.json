@@ -1,0 +1,38 @@
+{
+  "case_set": "printable-geometry-rerun-v2",
+  "cases": {
+    "baseline_no_guide": {
+      "build": "13-18870c24d21c",
+      "iterations": 800,
+      "mesh_check": "OK",
+      "residual_controls_satisfied": false,
+      "sample_time": "800",
+      "surface_closed": true
+    },
+    "design_A_low_blockage": {
+      "build": "13-18870c24d21c",
+      "iterations": 800,
+      "mesh_check": "OK",
+      "residual_controls_satisfied": false,
+      "sample_time": "800",
+      "surface_closed": true
+    },
+    "design_B_angled_guide": {
+      "build": "13-18870c24d21c",
+      "iterations": 800,
+      "mesh_check": "OK",
+      "residual_controls_satisfied": false,
+      "sample_time": "800",
+      "surface_closed": true
+    },
+    "design_C_balanced_revision": {
+      "build": "13-18870c24d21c",
+      "iterations": 800,
+      "mesh_check": "OK",
+      "residual_controls_satisfied": false,
+      "sample_time": "800",
+      "surface_closed": true
+    }
+  },
+  "openfoam_version": 13
+}

@@ -1,0 +1,39 @@
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      nut;
+}
+
+dimensions      [0 2 -1 0 0 0 0];
+internalField   uniform 0;
+
+boundaryField
+{
+    fan_active_annulus
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+    inlet_blocked
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+    outlet
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+    walls
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+    solidSurfaces
+    {
+        type            nutkWallFunction;
+        value           uniform 0;
+    }
+}

@@ -1,6 +1,6 @@
 # PC Fan Airflow Guide
 
-A measured 120 mm intake-fan project comparing three internal airflow guides. The repository contains parametric CAD, printable STEP/STL exports, archived OpenFOAM samples and logs, and scripts that recalculate every published table and figure.
+A measured 120 mm intake-fan project comparing three internal airflow guides. The repository contains parametric CAD, printable STEP/STL exports, complete OpenFOAM 13 cases, raw rerun evidence, and scripts that recalculate every published table and figure.
 
 The goal is narrow: determine which concepts are worth printing and testing. The CFD does **not** prove lower CPU or GPU temperatures.
 
@@ -8,32 +8,32 @@ The goal is narrow: determine which concepts are worth printing and testing. The
 
 ## Current result
 
-The first CFD pass narrows the physical test to two guides:
+The printable-geometry rerun leaves two useful physical prototypes:
 
-- **Design A** is the low-risk control. It has the lowest pressure-demand indicator and the simplest straight-vane geometry.
-- **Design C** is the directional candidate. It has the lowest sampled reverse-flow fraction and retains the most downstream axial velocity among the guide designs, but it also has the highest pressure demand and a large transverse-velocity component.
-- **Design B** is retained as an aggressive comparison, but its higher blockage and weaker downstream axial result make it a lower printing priority.
+- **Design A** is the straight-vane control. It has low printable blockage and the smallest mean transverse component at the 130 mm target plane.
+- **Design C** is the balanced directional candidate. It has the lowest pressure-demand indicator, low printable blockage, and a transverse component between A and B at 130 mm.
+- **Design B** remains the aggressive comparison. It has the lowest average reverse-flow fraction, but also the highest blockage, pressure-demand indicator, and 130 mm transverse component among the guides.
 
 No design is declared final. The next decision requires a baseline-versus-A-versus-C physical test.
 
-| Case | Printable blockage estimate | Pressure-demand indicator* | Mean reverse-flow samples | Axial velocity at 350 mm |
+| Case | Printable blockage estimate | Pressure-demand indicator* | Mean reverse-flow samples | Transverse speed at 130 mm |
 |---|---:|---:|---:|---:|
-| Baseline | 0.00% | 0.65 Pa | 38.9% | 100.0% |
-| Design A | 3.95% | 0.36 Pa | 40.0% | 93.9% |
-| Design B | 7.02% | 0.72 Pa | 30.8% | 91.2% |
-| Design C | 3.56% | 1.00 Pa | 28.2% | 96.1% |
+| Baseline | 0.00% | 0.245 Pa | 41.3% | 0.0823 m/s |
+| Design A | 3.95% | 0.248 Pa | 41.1% | 0.0745 m/s |
+| Design B | 7.02% | 0.259 Pa | 39.7% | 0.1066 m/s |
+| Design C | 3.56% | 0.229 Pa | 40.4% | 0.0924 m/s |
 
 \* OpenFOAM stores kinematic pressure for this incompressible setup. The table converts the sampled pressure difference using an assumed air density of 1.20 kg/m³. Treat it as a comparison indicator, not a fan-pressure measurement.
 
-The full calculation is in [`results/cfd_summary.csv`](results/cfd_summary.csv). The archived runs ended at 200 iterations and were not convergence- or mesh-independence-certified; that limitation is carried into the decision instead of being hidden.
+The full calculation is in [`results/cfd_summary.csv`](results/cfd_summary.csv). Mean axial velocity at 350 mm is within 0.01% across all four cases because the closed duct and equal inlet flow constrain that plane average; it is a mass-flow check, not a design-ranking metric. All four runs reached the 800-iteration limit before satisfying every strict residual control, and no mesh-independence study has been completed. Those limitations are carried into the decision instead of being hidden.
 
 ## Designs
 
 | Design | Depth | Vanes | Bias | Vane thickness | Intended role |
 |---|---:|---:|---:|---:|---|
-| A — low blockage | 20 mm | 6 | 0° | 1.50 mm | Straight-vane, low-pressure candidate |
+| A — low blockage | 20 mm | 6 | 0° | 1.50 mm | Straight-vane control candidate |
 | B — angled guide | 25 mm | 8 | 14° | 2.00 mm | High-blockage comparison |
-| C — balanced revision | 22 mm | 6 | 9° | 1.35 mm | Directional prototype candidate |
+| C — balanced revision | 22 mm | 6 | 9° | 1.35 mm | Balanced directional candidate |
 
 All three printable exports are single connected solids, watertight, manifold, and confined to their declared depth. The vanes overlap both the central hub and outer frame so they do not float as separate bodies.
 
@@ -43,9 +43,10 @@ Requirements:
 
 - Node.js 20 or newer for CAD export
 - Python 3.10 or newer for analysis
+- OpenFOAM 13 only when rebuilding the CFD solutions
 
 ```bash
-npm install
+npm ci
 python -m pip install -r requirements.txt
 npm run check
 ```
@@ -54,17 +55,29 @@ Individual commands:
 
 ```bash
 npm run cad
+npm run cfd:prepare
 npm run analysis
 npm run validate
 ```
 
-The validation step checks STL envelopes and topology, recalculates key CFD values from the raw samples, checks local document links, and scans the public tree for private workspace residue.
+To rebuild the meshes and solutions from a clean OpenFOAM 13 shell:
+
+```bash
+CFD_JOBS=4 CFD_RUN_ROOT=/path/to/new/run-directory npm run cfd:run
+npm run cfd:collect -- /path/to/new/run-directory
+npm run analysis
+npm run validate
+```
+
+The validation step checks STL envelopes and topology, complete case inputs, CAD-to-CFD geometry identity, raw solver evidence, recalculated CFD values, local document links, and the public tree.
 
 ## Repository map
 
 - [`cad_designs/`](cad_designs/) — printable STEP/STL files and a dimensional fan reference
 - [`scripts/generate_cad.cjs`](scripts/generate_cad.cjs) — parametric CAD source
-- [`data/`](data/) — archived OpenFOAM target-plane samples and run logs
+- [`openfoam_cases/`](openfoam_cases/) — complete OpenFOAM inputs and one-command case runners
+- [`data/`](data/) — current and original OpenFOAM target-plane samples and run logs
+- [`scripts/run_openfoam_cases.sh`](scripts/run_openfoam_cases.sh) — clean four-case meshing, solving, and sampling pipeline
 - [`scripts/analyze_openfoam_samples.py`](scripts/analyze_openfoam_samples.py) — table and figure generation
 - [`results/`](results/) — corrected summaries, mesh checks, residuals, and figures
 - [`docs/measurements.md`](docs/measurements.md) — measured fan and case constraints
