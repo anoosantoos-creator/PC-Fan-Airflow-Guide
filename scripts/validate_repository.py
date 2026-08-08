@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import re
 import struct
+import zlib
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -19,6 +20,27 @@ DESIGN_DEPTHS = {
     "design_B_angled_guide.stl": 25.0,
     "design_C_balanced_revision.stl": 22.0,
 }
+
+STEP_EXPORTS = {
+    "design_A_low_blockage.step",
+    "design_B_angled_guide.step",
+    "design_C_balanced_revision.step",
+    "fan_reference.step",
+}
+
+REPRODUCIBLE_STEP_TIMESTAMP = "2000-01-01T00:00:00"
+STEP_TIMESTAMP_PATTERN = re.compile(
+    r"FILE_NAME\('Open CASCADE Shape Model','([^']+)'"
+)
+
+FIGURE_EXPORTS = {
+    "screening_tradeoffs.png",
+    "velocity_magnitude_x100.png",
+    "velocity_magnitude_x130.png",
+    "velocity_magnitude_x350.png",
+}
+
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 REMOVED_PUBLIC_ARTIFACTS = {
     "OPEN_ME.html",
@@ -141,6 +163,52 @@ def validate_cad() -> None:
         }:
             fail(f"Mesh topology failed for {filename}: {topology}")
 
+    for filename in STEP_EXPORTS:
+        path = ROOT / "cad_designs" / filename
+        match = STEP_TIMESTAMP_PATTERN.search(path.read_text(encoding="utf-8"))
+        if not match:
+            fail(f"STEP timestamp is missing from {filename}")
+        if match.group(1) != REPRODUCIBLE_STEP_TIMESTAMP:
+            fail(f"STEP timestamp is not reproducible in {filename}: {match.group(1)}")
+
+
+def validate_png(path: Path) -> None:
+    data = path.read_bytes()
+    if not data.startswith(PNG_SIGNATURE):
+        fail(f"Invalid PNG signature: {path.relative_to(ROOT)}")
+
+    offset = len(PNG_SIGNATURE)
+    while offset < len(data):
+        if len(data) - offset < 12:
+            fail(f"Truncated PNG chunk: {path.relative_to(ROOT)}")
+
+        payload_length = struct.unpack_from(">I", data, offset)[0]
+        chunk_type = data[offset + 4 : offset + 8]
+        payload_start = offset + 8
+        payload_end = payload_start + payload_length
+        chunk_end = payload_end + 4
+        if chunk_end > len(data):
+            fail(f"Truncated PNG payload: {path.relative_to(ROOT)}")
+
+        expected_crc = struct.unpack_from(">I", data, payload_end)[0]
+        calculated_crc = zlib.crc32(chunk_type)
+        calculated_crc = zlib.crc32(data[payload_start:payload_end], calculated_crc)
+        if expected_crc != calculated_crc & 0xFFFFFFFF:
+            fail(f"PNG checksum mismatch: {path.relative_to(ROOT)}")
+
+        offset = chunk_end
+        if chunk_type == b"IEND":
+            if payload_length != 0 or offset != len(data):
+                fail(f"Malformed PNG ending: {path.relative_to(ROOT)}")
+            return
+
+    fail(f"PNG ending is missing: {path.relative_to(ROOT)}")
+
+
+def validate_figures() -> None:
+    for filename in FIGURE_EXPORTS:
+        validate_png(ROOT / "results" / "figures" / filename)
+
 
 def validate_samples_and_summary() -> None:
     summary_path = ROOT / "results" / "cfd_summary.csv"
@@ -210,6 +278,7 @@ def validate_markdown_links() -> None:
 
 def main() -> None:
     validate_cad()
+    validate_figures()
     validate_samples_and_summary()
     validate_public_text()
     validate_markdown_links()

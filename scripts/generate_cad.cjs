@@ -8,6 +8,9 @@ const openCascade = require("replicad-opencascadejs").default;
 const replicad = require("replicad");
 
 const OUTPUT_DIRECTORY = path.resolve(__dirname, "..", "cad_designs");
+const REPRODUCIBLE_STEP_TIMESTAMP = "2000-01-01T00:00:00";
+const STEP_TIMESTAMP_PATTERN =
+  /(FILE_NAME\('Open CASCADE Shape Model',')\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(')/;
 
 const COMMON = {
   frameSize: 120,
@@ -112,7 +115,18 @@ async function saveShape(shape, baseName) {
   const stl = await shape
     .blobSTL({ tolerance: 0.08, angularTolerance: 0.15, binary: true })
     .arrayBuffer();
-  await writeFile(path.join(OUTPUT_DIRECTORY, `${baseName}.step`), Buffer.from(step));
+  const stepText = Buffer.from(step).toString("utf8");
+  if (!STEP_TIMESTAMP_PATTERN.test(stepText)) {
+    throw new Error(`Could not normalize the STEP timestamp for ${baseName}`);
+  }
+  const reproducibleStep = stepText.replace(
+    STEP_TIMESTAMP_PATTERN,
+    `$1${REPRODUCIBLE_STEP_TIMESTAMP}$2`
+  );
+  await writeFile(
+    path.join(OUTPUT_DIRECTORY, `${baseName}.step`),
+    Buffer.from(reproducibleStep, "utf8")
+  );
   await writeFile(path.join(OUTPUT_DIRECTORY, `${baseName}.stl`), Buffer.from(stl));
 }
 
