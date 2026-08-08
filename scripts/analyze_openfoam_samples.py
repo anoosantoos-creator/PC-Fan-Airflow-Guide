@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
-"""Recalculate the published CFD summary and figures from archived samples."""
+"""Recalculate the published CFD summary and figures from the v2 rerun."""
 
 from __future__ import annotations
 
 import csv
+import json
 import math
+import os
 import re
+import tempfile
 from pathlib import Path
+
+if "MPLCONFIGDIR" not in os.environ:
+    matplotlib_cache = Path(tempfile.gettempdir()) / "pc-fan-airflow-guide-matplotlib"
+    matplotlib_cache.mkdir(parents=True, exist_ok=True)
+    os.environ["MPLCONFIGDIR"] = str(matplotlib_cache)
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SAMPLE_ROOT = ROOT / "data" / "openfoam_samples"
-LOG_ROOT = ROOT / "data" / "openfoam_logs"
+RUN_EVIDENCE_ROOT = ROOT / "data" / "rerun_v2"
+SAMPLE_ROOT = RUN_EVIDENCE_ROOT / "openfoam_samples"
+LOG_ROOT = RUN_EVIDENCE_ROOT / "openfoam_logs"
+MANIFEST_PATH = RUN_EVIDENCE_ROOT / "run_manifest.json"
 RESULTS_ROOT = ROOT / "results"
 FIGURE_ROOT = RESULTS_ROOT / "figures"
 
@@ -29,8 +39,6 @@ CASES = {
         "vane_count": 0,
         "vane_bias_deg": 0.0,
         "vane_thickness_mm": 0.0,
-        "cfd_blockage_percent": 0.0,
-        "cad_blockage_percent": 0.0,
         "decision": "Reference case",
     },
     "design_A_low_blockage": {
@@ -39,8 +47,7 @@ CASES = {
         "vane_count": 6,
         "vane_bias_deg": 0.0,
         "vane_thickness_mm": 1.5,
-        "cfd_blockage_percent": 3.4,
-        "decision": "Prototype candidate: low pressure demand and simple geometry",
+        "decision": "Physical-test candidate",
     },
     "design_B_angled_guide": {
         "label": "Design B",
@@ -48,8 +55,7 @@ CASES = {
         "vane_count": 8,
         "vane_bias_deg": 14.0,
         "vane_thickness_mm": 2.0,
-        "cfd_blockage_percent": 6.2,
-        "decision": "Deprioritized: highest blockage and lowest downstream axial speed",
+        "decision": "Comparison design",
     },
     "design_C_balanced_revision": {
         "label": "Design C",
@@ -57,19 +63,23 @@ CASES = {
         "vane_count": 6,
         "vane_bias_deg": 9.0,
         "vane_thickness_mm": 1.35,
-        "cfd_blockage_percent": 3.1,
-        "decision": "Prototype candidate: lower reverse-flow fraction but higher pressure demand",
+        "decision": "Physical-test candidate",
     },
 }
 
 
+def load_manifest() -> dict:
+    return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+
+
 def sample_path(case: str, plane_mm: int) -> Path:
+    sample_time = str(load_manifest()["cases"][case]["sample_time"])
     return (
         SAMPLE_ROOT
         / case
         / "postProcessing"
         / "targetPlaneSamples"
-        / "200"
+        / sample_time
         / f"plane_x_{plane_mm}mm.xy"
     )
 
@@ -157,12 +167,13 @@ def write_cfd_summary(metrics: dict[str, dict]) -> None:
         "vane_count",
         "vane_bias_deg",
         "vane_thickness_mm",
-        "cfd_geometry_blockage_percent",
-        "printable_cad_blockage_percent_estimate",
+        "vane_blockage_percent_estimate",
         "mean_ux_x100_m_s",
         "mean_ux_x130_m_s",
         "mean_ux_x350_m_s",
         "axial_retention_x350_percent_of_baseline",
+        "mean_speed_x130_m_s",
+        "mean_transverse_speed_x130_m_s",
         "mean_speed_x350_m_s",
         "mean_transverse_speed_x350_m_s",
         "kinematic_pressure_demand_m2_s2",
@@ -171,7 +182,7 @@ def write_cfd_summary(metrics: dict[str, dict]) -> None:
         "decision",
     ]
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for case, entry in metrics.items():
             writer.writerow(
@@ -182,12 +193,13 @@ def write_cfd_summary(metrics: dict[str, dict]) -> None:
                     "vane_count": entry["vane_count"],
                     "vane_bias_deg": f'{entry["vane_bias_deg"]:.1f}',
                     "vane_thickness_mm": f'{entry["vane_thickness_mm"]:.2f}',
-                    "cfd_geometry_blockage_percent": f'{entry["cfd_blockage_percent"]:.1f}',
-                    "printable_cad_blockage_percent_estimate": f'{entry["cad_blockage_percent"]:.2f}',
+                    "vane_blockage_percent_estimate": f'{entry["cad_blockage_percent"]:.2f}',
                     "mean_ux_x100_m_s": f'{entry["planes"][100]["mean_ux"]:.5f}',
                     "mean_ux_x130_m_s": f'{entry["planes"][130]["mean_ux"]:.5f}',
                     "mean_ux_x350_m_s": f'{entry["planes"][350]["mean_ux"]:.5f}',
                     "axial_retention_x350_percent_of_baseline": f'{entry["planes"][350]["axial_velocity_retention_percent"]:.2f}',
+                    "mean_speed_x130_m_s": f'{entry["planes"][130]["mean_speed"]:.5f}',
+                    "mean_transverse_speed_x130_m_s": f'{entry["planes"][130]["mean_transverse_speed"]:.5f}',
                     "mean_speed_x350_m_s": f'{entry["planes"][350]["mean_speed"]:.5f}',
                     "mean_transverse_speed_x350_m_s": f'{entry["planes"][350]["mean_transverse_speed"]:.5f}',
                     "kinematic_pressure_demand_m2_s2": f'{entry["kinematic_pressure_demand_m2_s2"]:.5f}',
@@ -229,17 +241,20 @@ def write_solver_summary() -> None:
         "status",
     ]
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
+        manifest = load_manifest()
         for case in CASES:
-            text = (LOG_ROOT / case / "simpleFoam.log").read_text(
+            text = (LOG_ROOT / case / "foamRun.log").read_text(
                 encoding="utf-8", errors="replace"
             )
             residuals = last_residuals(text)
+            case_manifest = manifest["cases"][case]
+            converged = bool(case_manifest["residual_controls_satisfied"])
             writer.writerow(
                 {
                     "case": case,
-                    "iterations": 200,
+                    "iterations": case_manifest["iterations"],
                     "last_initial_residual_ux": f'{residuals["Ux"]:.8g}',
                     "last_initial_residual_uy": f'{residuals["Uy"]:.8g}',
                     "last_initial_residual_uz": f'{residuals["Uz"]:.8g}',
@@ -247,7 +262,11 @@ def write_solver_summary() -> None:
                     "last_initial_residual_k": f'{residuals["k"]:.8g}',
                     "last_initial_residual_omega": f'{residuals["omega"]:.8g}',
                     "last_global_continuity_error": f'{residuals["continuity_global"]:.8g}',
-                    "status": "Iteration-limited screening run; no convergence certification",
+                    "status": (
+                        "Residual controls satisfied"
+                        if converged
+                        else "Maximum iteration count reached before all residual controls"
+                    ),
                 }
             )
 
@@ -271,7 +290,7 @@ def write_mesh_summary() -> None:
         "check_mesh_status",
     ]
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for case in CASES:
             text = (LOG_ROOT / case / "checkMesh.log").read_text(
@@ -364,29 +383,32 @@ def plot_tradeoffs(metrics: dict[str, dict]) -> None:
         entry["pressure_demand_pa_at_1p2kg_m3"] for entry in metrics.values()
     ]
     reverse = [entry["average_reverse_flow_percent"] for entry in metrics.values()]
-    retention = [
-        entry["planes"][350]["axial_velocity_retention_percent"]
+    transverse_x130 = [
+        entry["planes"][130]["mean_transverse_speed"]
         for entry in metrics.values()
     ]
 
-    for axis, values, title, ylabel in (
+    for axis, values, title, ylabel, label_format in (
         (
             axes[0],
             pressure,
             "Pressure-demand indicator",
             "Equivalent pressure (Pa)\nusing ρ = 1.20 kg/m³",
+            "%.2f",
         ),
         (
             axes[1],
             reverse,
             "Average sampled reverse flow",
             "Points with Ux < 0 (%)",
+            "%.1f",
         ),
         (
             axes[2],
-            retention,
-            "Axial velocity at x = 350 mm",
-            "Retention relative to baseline (%)",
+            transverse_x130,
+            "Directional component at x = 130 mm",
+            "Mean transverse speed (m/s)",
+            "%.3f",
         ),
     ):
         bars = axis.bar(x, values, color=colors)
@@ -394,9 +416,9 @@ def plot_tradeoffs(metrics: dict[str, dict]) -> None:
         axis.set_ylabel(ylabel)
         axis.set_xticks(x, labels)
         axis.grid(axis="y", alpha=0.25)
-        axis.bar_label(bars, fmt="%.1f", padding=3, fontsize=8)
+        axis.bar_label(bars, fmt=label_format, padding=3, fontsize=8)
 
-    fig.suptitle("Fixed-iteration CFD screening trade-offs")
+    fig.suptitle("OpenFOAM 13 printable-geometry rerun trade-offs")
     fig.savefig(
         FIGURE_ROOT / "screening_tradeoffs.png",
         dpi=180,
@@ -414,7 +436,7 @@ def main() -> None:
     write_mesh_summary()
     plot_velocity_planes(sample_sets)
     plot_tradeoffs(metrics)
-    print("Rebuilt CFD tables and figures from archived OpenFOAM samples.")
+    print("Rebuilt CFD tables and figures from the OpenFOAM v2 rerun.")
 
 
 if __name__ == "__main__":

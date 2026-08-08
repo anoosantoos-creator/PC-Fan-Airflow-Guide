@@ -1,0 +1,6 @@
+{
+  "case": "design_A_low_blockage",
+  "description": "Current connected 20 mm guide with six straight vanes.",
+  "label": "Design A",
+  "source": "design_A_low_blockage.stl"
+}

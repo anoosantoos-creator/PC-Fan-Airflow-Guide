@@ -1,5 +1,5 @@
 case,cells,max_aspect_ratio,max_non_orthogonality_deg,average_non_orthogonality_deg,max_skewness,check_mesh_status
-baseline_no_guide,217500,1.0057472,0.0,0.0,9.6589403e-14,OK
-design_A_low_blockage,333490,3.7905878,45.096281,6.1157379,1.4069801,OK
-design_B_angled_guide,357784,3.9992887,48.607371,6.6688506,1.5657989,OK
-design_C_balanced_revision,343423,4.1593767,45.550516,6.3431723,1.7650351,OK
+baseline_no_guide,337119,5.0839717,49.411631,6.0665331,1.1508322,OK
+design_A_low_blockage,355355,4.5194497,50.595419,6.335392,1.5519902,OK
+design_B_angled_guide,365342,5.0839714,57.006657,6.9823907,1.986106,OK
+design_C_balanced_revision,356276,4.8465466,57.232092,6.4384266,1.7724191,OK

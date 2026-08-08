@@ -8,7 +8,7 @@ The CFD screen leaves two useful prototypes: Design A and Design C. This procedu
 2. Design A, mounted in the same position
 3. Design C, mounted in the same position
 
-Design B is not part of the first print cycle because it combines the highest blockage with the weakest downstream axial result.
+Design B is not part of the first print cycle because it combines the highest blockage and pressure-demand indicator with the strongest transverse component at the 130 mm target plane. Its lower reverse-flow fraction remains useful evidence, but does not outweigh those first-cycle trade-offs.
 
 ## Controlled conditions
 

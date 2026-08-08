@@ -1,0 +1,56 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+
+scale 1;
+
+// A 4 mm inlet offset prevents the solid from being coincident with the
+// velocity boundary. The 46 mm outlet extension keeps x=350 mm internal.
+vertices
+(
+    (-0.004 -0.1 -0.1)
+    ( 0.396 -0.1 -0.1)
+    ( 0.396  0.1 -0.1)
+    (-0.004  0.1 -0.1)
+    (-0.004 -0.1  0.1)
+    ( 0.396 -0.1  0.1)
+    ( 0.396  0.1  0.1)
+    (-0.004  0.1  0.1)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (100 50 50) simpleGrading (1 1 1)
+);
+
+edges ();
+
+boundary
+(
+    inlet_blocked
+    {
+        type wall;
+        faces ((0 4 7 3));
+    }
+    outlet
+    {
+        type patch;
+        faces ((1 2 6 5));
+    }
+    walls
+    {
+        type wall;
+        faces
+        (
+            (0 1 5 4)
+            (3 7 6 2)
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+);
+
+mergePatchPairs ();

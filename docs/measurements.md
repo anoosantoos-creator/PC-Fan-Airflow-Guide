@@ -31,13 +31,13 @@ The measured active annulus is bounded by a 20 mm hub radius and a 52.5 mm openi
 A = \pi(0.0525^2 - 0.0200^2) = 0.007402\ \text{m}^2
 \]
 
-The archived CFD used a nominal 2.5 m/s axial inlet over that annulus:
+The current OpenFOAM comparison uses a nominal 2.5 m/s axial inlet over that annulus:
 
 \[
 Q = AU \approx 0.0185\ \text{m}^3/\text{s} \approx 39\ \text{CFM}
 \]
 
-The velocity was an equal-input assumption for comparing designs. It was not measured from the fan and was not taken from a manufacturer fan curve.
+The velocity is an equal-input assumption for comparing designs. It was not measured from the fan and was not taken from a manufacturer fan curve.
 
 ## Evidence still needed
 

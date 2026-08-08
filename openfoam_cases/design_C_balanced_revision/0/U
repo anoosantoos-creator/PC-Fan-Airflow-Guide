@@ -1,0 +1,44 @@
+FoamFile
+{
+    format      ascii;
+    class       volVectorField;
+    location    "0";
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+
+// Uniform initialization estimate. The prescribed mass flow comes from
+// the fixed 20--52.5 mm annular inlet patch below.
+internalField   uniform (0.52 0 0);
+
+boundaryField
+{
+    fan_active_annulus
+    {
+        type            fixedValue;
+        value           uniform (2.5 0 0);
+    }
+
+    inlet_blocked
+    {
+        type            noSlip;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform (0 0 0);
+        value           uniform (0.52 0 0);
+    }
+
+    walls
+    {
+        type            noSlip;
+    }
+
+    solidSurfaces
+    {
+        type            noSlip;
+    }
+}

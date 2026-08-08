@@ -1,0 +1,75 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 13-18870c24d21c
+Exec   : surfaceCheck constant/triSurface/obstruction.stl
+Date   : Aug 08 2026
+Time   : 22:11:01
+Host   : "<compute-host>"
+PID    : 326
+I/O    : uncollated
+Case   : <run-root>/design_C_balanced_revision
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Reading surface from "constant/triSurface/obstruction.stl" ...
+
+Statistics:
+Triangles    : 2116
+Vertices     : 1040
+Bounding Box : (0 -0.06 -0.06) (0.022 0.06 0.06)
+
+Region	Size
+------	----
+patch0	2116
+
+
+Surface has no illegal triangles.
+
+Triangle quality (equilateral=1, collapsed=0):
+    0 .. 0.05  : 0.762287
+    0.05 .. 0.1  : 0.110113
+    0.1 .. 0.15  : 0.0094518
+    0.15 .. 0.2  : 0.00708885
+    0.2 .. 0.25  : 0.00661626
+    0.25 .. 0.3  : 0.0931002
+    0.3 .. 0.35  : 0
+    0.35 .. 0.4  : 0
+    0.4 .. 0.45  : 0
+    0.45 .. 0.5  : 0
+    0.5 .. 0.55  : 0
+    0.55 .. 0.6  : 0
+    0.6 .. 0.65  : 0
+    0.65 .. 0.7  : 0
+    0.7 .. 0.75  : 0.0113422
+    0.75 .. 0.8  : 0
+    0.8 .. 0.85  : 0
+    0.85 .. 0.9  : 0
+    0.9 .. 0.95  : 0
+    0.95 .. 1  : 0
+
+    min 8.27393e-05 for triangle 31
+    max 0.711447 for triangle 538
+
+Edges:
+    min 0.000183213 for edge 56 points (0.022 0.0519548 -0.0548886)(0.022 0.0517779 -0.0548412)
+    max 0.122 for edge 2494 points (0.022 -0.06 0.06)(0 -0.06 -0.06)
+
+Checking for points less than 1e-6 of bounding box ((0.022 0.12 0.12) metre) apart.
+Found 0 nearby points.
+
+Surface is closed. All edges connected to two faces.
+
+Number of unconnected parts : 1
+
+Number of zones (connected area with consistent normal) : 1
+
+
+End

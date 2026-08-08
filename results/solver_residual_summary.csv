@@ -1,5 +1,5 @@
 case,iterations,last_initial_residual_ux,last_initial_residual_uy,last_initial_residual_uz,last_initial_residual_p,last_initial_residual_k,last_initial_residual_omega,last_global_continuity_error,status
-baseline_no_guide,200,0.00080159936,0.0050326512,0.0050329968,0.0082397645,0.00149331,0.0010263156,-7.2349113e-05,Iteration-limited screening run; no convergence certification
-design_A_low_blockage,200,0.0010999763,0.0066723618,0.0071987453,0.013737527,0.0029601817,0.00018110713,0.00020693591,Iteration-limited screening run; no convergence certification
-design_B_angled_guide,200,0.0017309179,0.0036996149,0.0037237611,0.0095499241,0.0047056656,0.00010417941,-7.7383063e-05,Iteration-limited screening run; no convergence certification
-design_C_balanced_revision,200,0.0028955143,0.011356714,0.011522878,0.013473801,0.0070635311,0.00018298651,-0.00018946215,Iteration-limited screening run; no convergence certification
+baseline_no_guide,800,0.00041520658,0.0049287822,0.0045762391,0.00018008135,0.00076967204,0.00031975862,5.5722683e-07,Maximum iteration count reached before all residual controls
+design_A_low_blockage,800,0.00033967786,0.0035759514,0.0032296429,0.00010447697,0.00079596478,0.00039685762,-1.8438271e-06,Maximum iteration count reached before all residual controls
+design_B_angled_guide,800,0.00036557005,0.0039712906,0.004289439,0.00012979401,0.00069908838,0.00033516511,-4.6058993e-07,Maximum iteration count reached before all residual controls
+design_C_balanced_revision,800,0.0003026183,0.0032766289,0.0028865056,7.137326e-05,0.00082862773,0.00033008003,8.0290415e-07,Maximum iteration count reached before all residual controls

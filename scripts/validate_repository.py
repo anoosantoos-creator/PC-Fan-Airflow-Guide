@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import re
 import struct
 import zlib
@@ -14,6 +15,36 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[1]
+RERUN_ROOT = ROOT / "data" / "rerun_v2"
+
+OPENFOAM_CASE_SOURCES = {
+    "baseline_no_guide": "fan_reference.stl",
+    "design_A_low_blockage": "design_A_low_blockage.stl",
+    "design_B_angled_guide": "design_B_angled_guide.stl",
+    "design_C_balanced_revision": "design_C_balanced_revision.stl",
+}
+
+OPENFOAM_CASE_FILES = {
+    "0/U",
+    "0/p",
+    "0/k",
+    "0/omega",
+    "0/nut",
+    "constant/momentumTransport",
+    "constant/physicalProperties",
+    "constant/triSurface/obstruction.stl",
+    "system/blockMeshDict",
+    "system/snappyHexMeshDict",
+    "system/createPatchDict",
+    "system/meshQualityDict",
+    "system/controlDict",
+    "system/fvSchemes",
+    "system/fvSolution",
+    "system/sampleDict",
+    "Allrun",
+    "README.md",
+    "case_metadata.json",
+}
 
 DESIGN_DEPTHS = {
     "design_A_low_blockage.stl": 20.0,
@@ -42,21 +73,14 @@ FIGURE_EXPORTS = {
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
-REMOVED_PUBLIC_ARTIFACTS = {
-    "OPEN_ME.html",
-    "README_FIRST.txt",
-    "RUN_REAL_OPENFOAM_CFD.md",
-    "run_status.md",
-    "cfd_results_comparison_surrogate.csv",
-    "review_exports",
-}
-
 PROHIBITED_TEXT = {
     "private Windows path": re.compile(r"[A-Za-z]:[/\\]Users[/\\]|/mnt/c/Users/", re.IGNORECASE),
+    "private workspace path": re.compile(r"/workspace/(?:scratch|upload|work)/", re.IGNORECASE),
     "unfinished marker": re.compile(r"\bTODO\b|\bplaceholder\b", re.IGNORECASE),
 }
 
 TEXT_SUFFIXES = {
+    "",
     ".cjs",
     ".csv",
     ".gitignore",
@@ -64,7 +88,10 @@ TEXT_SUFFIXES = {
     ".log",
     ".md",
     ".py",
+    ".sh",
     ".txt",
+    ".yaml",
+    ".yml",
 }
 
 
@@ -95,9 +122,9 @@ def read_binary_stl(path: Path):
     return triangles
 
 
-def mesh_topology(triangles: np.ndarray):
+def mesh_topology(triangles: np.ndarray, quantization: int = 100_000):
     flat_vertices = triangles.reshape(-1, 3)
-    quantized = np.rint(flat_vertices * 100_000).astype(np.int64)
+    quantized = np.rint(flat_vertices * quantization).astype(np.int64)
     vertex_ids = {}
     indexed_vertices = []
     for vertex in map(tuple, quantized):
@@ -172,6 +199,73 @@ def validate_cad() -> None:
             fail(f"STEP timestamp is not reproducible in {filename}: {match.group(1)}")
 
 
+def validate_openfoam_cases() -> None:
+    case_root = ROOT / "openfoam_cases"
+    for case, source_name in OPENFOAM_CASE_SOURCES.items():
+        case_directory = case_root / case
+        present_files = {
+            str(path.relative_to(case_directory))
+            for path in case_directory.rglob("*")
+            if path.is_file()
+        }
+        missing = OPENFOAM_CASE_FILES - present_files
+        if missing:
+            fail(f"OpenFOAM case {case} is incomplete: {sorted(missing)}")
+
+        if not (case_directory / "Allrun").stat().st_mode & 0o111:
+            fail(f"OpenFOAM Allrun is not executable: {case}")
+
+        source_triangles = read_binary_stl(ROOT / "cad_designs" / source_name)
+        case_triangles = read_binary_stl(
+            case_directory / "constant" / "triSurface" / "obstruction.stl"
+        )
+        if source_triangles.shape != case_triangles.shape or not np.allclose(
+            case_triangles, source_triangles * 0.001, atol=1e-9
+        ):
+            fail(f"OpenFOAM surface is not a metre-scaled CAD copy: {case}")
+
+        topology = mesh_topology(case_triangles, quantization=100_000_000)
+        expected_components = 2 if case == "baseline_no_guide" else 1
+        if topology != {
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "components": expected_components,
+        }:
+            fail(f"OpenFOAM surface topology failed for {case}: {topology}")
+
+        allrun = (case_directory / "Allrun").read_text(encoding="utf-8")
+        for command in (
+            "blockMesh",
+            "surfaceCheck",
+            "snappyHexMesh",
+            "createPatch",
+            "checkMesh",
+            "foamRun",
+            "foamPostProcess",
+        ):
+            if command not in allrun:
+                fail(f"OpenFOAM Allrun is missing {command}: {case}")
+
+        u_text = (case_directory / "0" / "U").read_text(encoding="utf-8")
+        if "codedFixedValue" in u_text or "fan_active_annulus" not in u_text:
+            fail(f"OpenFOAM inlet is not the native annular patch setup: {case}")
+
+        sample_text = (case_directory / "system" / "sampleDict").read_text(
+            encoding="utf-8"
+        )
+        if (
+            "type                sets;" not in sample_text
+            or "type                surfaces;" in sample_text
+        ):
+            fail(f"OpenFOAM sampling is not a fixed point-set grid: {case}")
+        for plane_mm in (100, 130, 350):
+            if f"plane_x_{plane_mm}mm" not in sample_text:
+                fail(f"OpenFOAM sampling plane x={plane_mm} mm is missing: {case}")
+            coordinate = plane_mm / 1000.0
+            if sample_text.count(f"({coordinate:.3f} ") != 2500:
+                fail(f"OpenFOAM fixed sampling grid is incomplete at x={plane_mm} mm: {case}")
+
+
 def validate_png(path: Path) -> None:
     data = path.read_bytes()
     if not data.startswith(PNG_SIGNATURE):
@@ -211,24 +305,48 @@ def validate_figures() -> None:
 
 
 def validate_samples_and_summary() -> None:
+    manifest = json.loads(
+        (RERUN_ROOT / "run_manifest.json").read_text(encoding="utf-8")
+    )
     summary_path = ROOT / "results" / "cfd_summary.csv"
     with summary_path.open(newline="", encoding="utf-8") as handle:
         rows = {row["case"]: row for row in csv.DictReader(handle)}
 
+    expected_cases = set(OPENFOAM_CASE_SOURCES)
+    if set(rows) != expected_cases or set(manifest["cases"]) != expected_cases:
+        fail("The CFD summary or run manifest does not contain exactly four cases")
+
     for case, row in rows.items():
+        case_manifest = manifest["cases"][case]
+        sample_time = str(case_manifest["sample_time"])
+        log_root = RERUN_ROOT / "openfoam_logs" / case
+
+        evidence_checks = {
+            "surfaceCheck.log": "Surface is closed.",
+            "snappyHexMesh.log": "Finished meshing without any errors",
+            "checkMesh.log": "Mesh OK.",
+            "foamRun.log": "End",
+            "sample.log": "Executing functionObjects",
+        }
+        for log_name, marker in evidence_checks.items():
+            log_text = (log_root / log_name).read_text(
+                encoding="utf-8", errors="replace"
+            )
+            if marker not in log_text or "FOAM FATAL" in log_text:
+                fail(f"OpenFOAM evidence check failed: {case}/{log_name}")
+
         for plane_mm in (100, 130, 350):
             path = (
-                ROOT
-                / "data"
+                RERUN_ROOT
                 / "openfoam_samples"
                 / case
                 / "postProcessing"
                 / "targetPlaneSamples"
-                / "200"
+                / sample_time
                 / f"plane_x_{plane_mm}mm.xy"
             )
             samples = np.loadtxt(path, comments="#")
-            if samples.shape != (2601, 7):
+            if samples.shape != (2500, 7):
                 fail(f"Unexpected sample dimensions: {path} -> {samples.shape}")
             if not np.isfinite(samples).all():
                 fail(f"Non-finite sample value: {path}")
@@ -242,10 +360,6 @@ def validate_samples_and_summary() -> None:
 
 
 def validate_public_text() -> None:
-    for removed in REMOVED_PUBLIC_ARTIFACTS:
-        if (ROOT / removed).exists():
-            fail(f"Release-only artifact is still present: {removed}")
-
     for path in ROOT.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
             continue
@@ -278,6 +392,7 @@ def validate_markdown_links() -> None:
 
 def main() -> None:
     validate_cad()
+    validate_openfoam_cases()
     validate_figures()
     validate_samples_and_summary()
     validate_public_text()

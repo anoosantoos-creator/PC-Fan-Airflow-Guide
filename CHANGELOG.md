@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-08-09
+
+- Added complete OpenFOAM 13 cases for the baseline and all three printable guides.
+- Added deterministic case generation, four-case execution, and evidence-collection scripts.
+- Rebuilt the meshes from the current STL exports and required every standard `checkMesh` run to report `Mesh OK`.
+- Reran all four steady simulations with native annular inlet patches and an 800-iteration limit.
+- Rebuilt the published tables and figures from fixed-grid target-plane samples and solver logs.
+- Expanded validation to check case completeness, CAD-to-CFD geometry identity, raw sample dimensions, and run evidence.
+- Preserved the original screening evidence as provenance while making the printable-geometry rerun the current result set.
+
 ## 0.1.0 — 2026-08-08
 
 - Rebuilt all three guide models as single connected solids.

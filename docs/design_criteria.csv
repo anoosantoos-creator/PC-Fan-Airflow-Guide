@@ -2,10 +2,10 @@ Criterion,Threshold or question,Design A,Design B,Design C,Current evidence
 Fit envelope,Remain within the measured 20-25 mm allowance,20 mm,25 mm,22 mm,STL envelopes verified automatically
 Single printable body,No floating hub or vane solids,Pass,Pass,Pass,Each guide is one manifold connected component
 Geometric blockage,Keep active-annulus obstruction low,3.95% estimate,7.02% estimate,3.56% estimate,Calculated from printable vane span and thickness
-Pressure demand,Prefer a lower comparative demand,0.36 Pa indicator,0.72 Pa indicator,1.00 Pa indicator,Design A is lowest in the archived run
-Reverse-flow samples,Prefer fewer sampled points with Ux below zero,40.0%,30.8%,28.2%,Average across x=100/130/350 mm
-Downstream axial retention,Retain axial velocity at x=350 mm,93.9%,91.2%,96.1%,Percent of baseline mean Ux
+Pressure demand,Prefer a lower comparative demand,0.248 Pa indicator,0.259 Pa indicator,0.229 Pa indicator,Design C is lowest in the printable-geometry rerun
+Reverse-flow samples,Prefer fewer sampled points with Ux below zero,41.1%,39.7%,40.4%,Average across x=100/130/350 mm; Design B is lowest
+Target-plane direction,Compare mean transverse speed at x=130 mm,0.0745 m/s,0.1066 m/s,0.0924 m/s,A is straightest; B is strongest; C is intermediate
 Printability,Use robust vane thickness and a flat build orientation,Needs slicer and print check,Lower priority due to thickness and blockage,Needs slicer and print check,CAD topology passes but no physical print is recorded
 Mounting,Use positive retention at measured 105 mm spacing,Through-holes,Through-holes,Through-holes,Long screws and nuts or a later clip revision are required
 Physical validation,Compare temperature RPM noise and mount stability,Selected,Not first,Selected,Baseline versus A versus C test remains outstanding
-Decision,Choose the next prototypes rather than a final winner,Prototype candidate,Retained comparison,Prototype candidate,A tests low pressure demand; C tests directional behavior
+Decision,Choose the next prototypes rather than a final winner,Prototype candidate,Retained comparison,Prototype candidate,A tests the straight low-blockage concept; C tests balanced direction with the lowest pressure indicator
